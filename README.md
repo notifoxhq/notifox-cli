@@ -31,7 +31,7 @@ Or build from source:
 ```bash
 git clone https://github.com/notifoxhq/notifox-cli.git
 cd notifox-cli
-go build -o notifox .
+make build  # or: go build -ldflags "-X main.version=$(git describe --tags --always)" -o notifox .
 ```
 
 ## Setup
