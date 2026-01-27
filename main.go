@@ -1,109 +1,92 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"io"
 	"os"
 	"strings"
 
 	"github.com/mathis/notifox-cli/internal/app"
-)
-
-const (
-	exitSuccess = 0
-	exitFailure = 1
+	"github.com/spf13/cobra"
 )
 
 func main() {
-	// Parse command
-	if len(os.Args) < 2 {
-		printUsage()
-		os.Exit(exitFailure)
+	rootCmd := &cobra.Command{
+		Use:   "notifox",
+		Short: "A CLI for sending internal alerts through Notifox",
+		Long:  "A small, Unix-friendly CLI for sending internal alerts through Notifox (SMS + Email).",
 	}
 
-	command := os.Args[1]
-	if command != "send" {
-		fmt.Fprintf(os.Stderr, "Error: unknown command '%s'\n", command)
-		fmt.Fprintf(os.Stderr, "Available commands: send\n")
-		os.Exit(exitFailure)
+	sendCmd := &cobra.Command{
+		Use:   "send",
+		Short: "Send an alert",
+		Long:  "Send an alert to a specified audience via SMS or email.",
+		RunE:  runSend,
 	}
 
-	// Parse flags for send command
-	fs := flag.NewFlagSet("send", flag.ExitOnError)
-	audience := fs.String("a", "", "audience to send the alert to")
-	audienceLong := fs.String("audience", "", "audience to send the alert to")
-	channel := fs.String("c", "", "channel to send through (sms|email)")
-	channelLong := fs.String("channel", "", "channel to send through (sms|email)")
-	message := fs.String("m", "", "message to send")
-	messageLong := fs.String("message", "", "message to send")
+	sendCmd.Flags().StringP("audience", "a", "", "audience to send the alert to")
+	sendCmd.Flags().StringP("channel", "c", "", "channel to send through (sms|email)")
+	sendCmd.Flags().StringP("message", "m", "", "message to send")
 
-	fs.Parse(os.Args[2:])
+	rootCmd.AddCommand(sendCmd)
 
-	// Merge short and long flags
-	if *audienceLong != "" {
-		*audience = *audienceLong
+	if err := rootCmd.Execute(); err != nil {
+		os.Exit(1)
 	}
-	if *channelLong != "" {
-		*channel = *channelLong
-	}
-	if *messageLong != "" {
-		*message = *messageLong
-	}
+}
+
+func runSend(cmd *cobra.Command, args []string) error {
+	// Get flags
+	audience, _ := cmd.Flags().GetString("audience")
+	channel, _ := cmd.Flags().GetString("channel")
+	message, _ := cmd.Flags().GetString("message")
 
 	// Get values from flags or environment variables (flags override env vars, like AWS CLI)
-	finalAudience := *audience
+	finalAudience := audience
 	if finalAudience == "" {
 		finalAudience = os.Getenv("NOTIFOX_AUDIENCE")
 	}
 
-	finalChannel := *channel
+	finalChannel := channel
 	if finalChannel == "" {
 		finalChannel = os.Getenv("NOTIFOX_CHANNEL")
 	}
 
 	// Read message from stdin or flag
-	msg, err := readMessage(*message)
+	msg, err := readMessage(message)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading message: %v\n", err)
-		os.Exit(exitFailure)
+		return fmt.Errorf("error reading message: %w", err)
 	}
 
 	// Validate inputs
 	if finalAudience == "" {
-		fmt.Fprintf(os.Stderr, "Error: -a/--audience is required (or set NOTIFOX_AUDIENCE)\n")
-		os.Exit(exitFailure)
+		return fmt.Errorf("audience is required (use -a/--audience or set NOTIFOX_AUDIENCE)")
 	}
 	if finalChannel == "" {
-		fmt.Fprintf(os.Stderr, "Error: -c/--channel is required (or set NOTIFOX_CHANNEL)\n")
-		os.Exit(exitFailure)
+		return fmt.Errorf("channel is required (use -c/--channel or set NOTIFOX_CHANNEL)")
 	}
 	if msg == "" {
-		fmt.Fprintf(os.Stderr, "Error: message is required (provide via -m/--message or stdin)\n")
-		os.Exit(exitFailure)
+		return fmt.Errorf("message is required (provide via -m/--message or stdin)")
 	}
 
 	// Validate channel
 	if finalChannel != "sms" && finalChannel != "email" {
-		fmt.Fprintf(os.Stderr, "Error: channel must be 'sms' or 'email', got '%s'\n", finalChannel)
-		os.Exit(exitFailure)
+		return fmt.Errorf("channel must be 'sms' or 'email', got '%s'", finalChannel)
 	}
 
 	// Create app and send alert
 	notifoxApp, err := app.New()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error initializing app: %v\n", err)
-		os.Exit(exitFailure)
+		return fmt.Errorf("error initializing app: %w", err)
 	}
 
 	err = notifoxApp.SendAlert(finalAudience, finalChannel, msg)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error sending alert: %v\n", err)
-		os.Exit(exitFailure)
+		return fmt.Errorf("error sending alert: %w", err)
 	}
 
 	fmt.Println("Alert sent successfully!")
-	os.Exit(exitSuccess)
+	return nil
 }
 
 func readMessage(messageFlag string) (string, error) {
@@ -130,13 +113,4 @@ func readMessage(messageFlag string) (string, error) {
 
 	// Stdin is a terminal, so no input from pipe
 	return "", nil
-}
-
-func printUsage() {
-	fmt.Fprintf(os.Stderr, "Usage: notifox <command> [flags]\n")
-	fmt.Fprintf(os.Stderr, "\n")
-	fmt.Fprintf(os.Stderr, "Commands:\n")
-	fmt.Fprintf(os.Stderr, "  send    Send an alert\n")
-	fmt.Fprintf(os.Stderr, "\n")
-	fmt.Fprintf(os.Stderr, "Use 'notifox send -h' for help on the send command\n")
 }
