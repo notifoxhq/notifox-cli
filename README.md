@@ -2,7 +2,7 @@
 
 # Notifox CLI
 
-A small, Unix-friendly CLI for sending **internal alerts** through Notifox (SMS + Email).
+A small, Unix-friendly CLI for sending **internal alerts** through [Notifox](https://notifox.com) (SMS + Email).
 
 The core goal is simple:
 
@@ -16,7 +16,49 @@ echo "hello" | notifox send -a mathis -c email
 
 ## Installation
 
-(TBD)
+### Download from GitHub Releases
+
+Download the latest release for your platform from the [Releases page](https://github.com/notifoxhq/notifox-cli/releases):
+
+```bash
+# macOS (Apple Silicon)
+curl -L https://github.com/notifoxhq/notifox-cli/releases/latest/download/notifox-cli_darwin_arm64.tar.gz | tar -xz
+sudo mv notifox /usr/local/bin/
+
+# macOS (Intel)
+curl -L https://github.com/notifoxhq/notifox-cli/releases/latest/download/notifox-cli_darwin_amd64.tar.gz | tar -xz
+sudo mv notifox /usr/local/bin/
+
+# Linux (amd64)
+curl -L https://github.com/notifoxhq/notifox-cli/releases/latest/download/notifox-cli_linux_amd64.tar.gz | tar -xz
+sudo mv notifox /usr/local/bin/
+
+# Linux (arm64)
+curl -L https://github.com/notifoxhq/notifox-cli/releases/latest/download/notifox-cli_linux_arm64.tar.gz | tar -xz
+sudo mv notifox /usr/local/bin/
+
+# Example for Windows
+# Download notifox-cli_windows_amd64.zip and extract notifox.exe
+```
+
+### Build from Source
+
+If you have Go installed:
+
+```bash
+git clone https://github.com/notifoxhq/notifox-cli.git
+cd notifox-cli
+go build -o notifox .
+sudo mv notifox /usr/local/bin/  # or add to your PATH
+```
+
+### Verify Installation
+
+```bash
+notifox send -h
+```
+
+This should display help for the `send` command.
 
 ---
 
