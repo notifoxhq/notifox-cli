@@ -10,21 +10,23 @@ echo "hello" | notifox send -a mathis -c email
 
 Download from the [releases page](https://github.com/notifoxhq/notifox-cli/releases):
 
+### macOS (Apple Silicon)
 ```bash
-# macOS (Apple Silicon)
 curl -L https://github.com/notifoxhq/notifox-cli/releases/latest/download/notifox-cli_darwin_arm64.tar.gz | tar -xz
 sudo mv notifox /usr/local/bin/
-
-# macOS (Intel)
+```
+### macOS (Intel)
+```bash
 curl -L https://github.com/notifoxhq/notifox-cli/releases/latest/download/notifox-cli_darwin_amd64.tar.gz | tar -xz
 sudo mv notifox /usr/local/bin/
-
-# Linux
+```
+### Linux (amd64)
+```bash
 curl -L https://github.com/notifoxhq/notifox-cli/releases/latest/download/notifox-cli_linux_amd64.tar.gz | tar -xz
 sudo mv notifox /usr/local/bin/
 ```
 
-Windows users: download the zip from the releases page and extract it manually.
+Windows users: download the zip from the [releases](https://github.com/notifoxhq/notifox-cli/releases) page and extract it manually.
 
 Or build from source:
 
