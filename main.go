@@ -10,11 +10,25 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var version = "v0.0.0"
+
 func main() {
 	rootCmd := &cobra.Command{
 		Use:   "notifox",
 		Short: "A CLI for sending internal alerts through Notifox",
 		Long:  "A small, Unix-friendly CLI for sending internal alerts through Notifox (SMS + Email).",
+		Run: func(cmd *cobra.Command, args []string) {
+			// Show help if no subcommand provided
+			cmd.Help()
+		},
+	}
+
+	versionCmd := &cobra.Command{
+		Use:   "version",
+		Short: "Show version information",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println(version)
+		},
 	}
 
 	sendCmd := &cobra.Command{
@@ -27,8 +41,14 @@ func main() {
 	sendCmd.Flags().StringP("audience", "a", "", "audience to send the alert to")
 	sendCmd.Flags().StringP("channel", "c", "", "channel to send through (sms|email)")
 	sendCmd.Flags().StringP("message", "m", "", "message to send")
+	sendCmd.Flags().BoolP("verbose", "v", false, "show detailed output (message ID, cost, parts)")
 
 	rootCmd.AddCommand(sendCmd)
+	rootCmd.AddCommand(versionCmd)
+
+	// Enable --version flag (cobra handles this automatically when Version is set)
+	rootCmd.Version = version
+	rootCmd.SetVersionTemplate(version + "\n")
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
@@ -40,6 +60,7 @@ func runSend(cmd *cobra.Command, args []string) error {
 	audience, _ := cmd.Flags().GetString("audience")
 	channel, _ := cmd.Flags().GetString("channel")
 	message, _ := cmd.Flags().GetString("message")
+	verbose, _ := cmd.Flags().GetBool("verbose")
 
 	// Get values from flags or environment variables (flags override env vars, like AWS CLI)
 	finalAudience := audience
@@ -80,12 +101,11 @@ func runSend(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error initializing app: %w", err)
 	}
 
-	err = notifoxApp.SendAlert(finalAudience, finalChannel, msg)
+	err = notifoxApp.SendAlert(finalAudience, finalChannel, msg, verbose)
 	if err != nil {
 		return fmt.Errorf("error sending alert: %w", err)
 	}
 
-	fmt.Println("Alert sent successfully!")
 	return nil
 }
 

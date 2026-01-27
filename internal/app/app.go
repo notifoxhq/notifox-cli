@@ -42,7 +42,7 @@ func New() (*App, error) {
 }
 
 // SendAlert sends an alert to the specified audience via the specified channel
-func (a *App) SendAlert(audience, channel, message string) error {
+func (a *App) SendAlert(audience, channel, message string, verbose bool) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -68,10 +68,12 @@ func (a *App) SendAlert(audience, channel, message string) error {
 		return handleError(err)
 	}
 
-	// Print success details
-	fmt.Printf("Message ID: %s\n", resp.MessageID)
-	fmt.Printf("Cost: $%.3f %s\n", resp.Cost, resp.Currency)
-	fmt.Printf("Parts: %d\n", resp.Parts)
+	// Print success details only if verbose
+	if verbose {
+		fmt.Printf("Message ID: %s\n", resp.MessageID)
+		fmt.Printf("Cost: $%.3f %s\n", resp.Cost, resp.Currency)
+		fmt.Printf("Parts: %d\n", resp.Parts)
+	}
 
 	return nil
 }
