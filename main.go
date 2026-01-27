@@ -51,6 +51,17 @@ func main() {
 		*message = *messageLong
 	}
 
+	// Get values from flags or environment variables (flags override env vars, like AWS CLI)
+	finalAudience := *audience
+	if finalAudience == "" {
+		finalAudience = os.Getenv("NOTIFOX_AUDIENCE")
+	}
+
+	finalChannel := *channel
+	if finalChannel == "" {
+		finalChannel = os.Getenv("NOTIFOX_CHANNEL")
+	}
+
 	// Read message from stdin or flag
 	msg, err := readMessage(*message)
 	if err != nil {
@@ -59,12 +70,12 @@ func main() {
 	}
 
 	// Validate inputs
-	if *audience == "" {
-		fmt.Fprintf(os.Stderr, "Error: -a/--audience is required\n")
+	if finalAudience == "" {
+		fmt.Fprintf(os.Stderr, "Error: -a/--audience is required (or set NOTIFOX_AUDIENCE)\n")
 		os.Exit(exitFailure)
 	}
-	if *channel == "" {
-		fmt.Fprintf(os.Stderr, "Error: -c/--channel is required\n")
+	if finalChannel == "" {
+		fmt.Fprintf(os.Stderr, "Error: -c/--channel is required (or set NOTIFOX_CHANNEL)\n")
 		os.Exit(exitFailure)
 	}
 	if msg == "" {
@@ -73,8 +84,8 @@ func main() {
 	}
 
 	// Validate channel
-	if *channel != "sms" && *channel != "email" {
-		fmt.Fprintf(os.Stderr, "Error: channel must be 'sms' or 'email', got '%s'\n", *channel)
+	if finalChannel != "sms" && finalChannel != "email" {
+		fmt.Fprintf(os.Stderr, "Error: channel must be 'sms' or 'email', got '%s'\n", finalChannel)
 		os.Exit(exitFailure)
 	}
 
@@ -85,7 +96,7 @@ func main() {
 		os.Exit(exitFailure)
 	}
 
-	err = notifoxApp.SendAlert(*audience, *channel, msg)
+	err = notifoxApp.SendAlert(finalAudience, finalChannel, msg)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error sending alert: %v\n", err)
 		os.Exit(exitFailure)
