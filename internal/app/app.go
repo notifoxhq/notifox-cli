@@ -15,7 +15,7 @@ type App struct {
 }
 
 // New creates a new App instance
-func New() (*App, error) {
+func New(version string) (*App, error) {
 	// Get API key from environment
 	apiKey := os.Getenv("NOTIFOX_API_KEY")
 	if apiKey == "" {
@@ -24,6 +24,8 @@ func New() (*App, error) {
 
 	// Build client options
 	var opts []notifox.ClientOption
+
+	opts = append(opts, notifox.WithUserAgent(fmt.Sprintf("notifox-cli/%s", version)))
 
 	// Optional base URL override
 	if baseURL := os.Getenv("NOTIFOX_BASE_URL"); baseURL != "" {

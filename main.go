@@ -96,7 +96,7 @@ func runSend(cmd *cobra.Command, args []string) error {
 	}
 
 	// Create app and send alert
-	notifoxApp, err := app.New()
+	notifoxApp, err := app.New(version)
 	if err != nil {
 		return fmt.Errorf("error initializing app: %w", err)
 	}
