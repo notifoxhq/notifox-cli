@@ -68,6 +68,14 @@ Or use the message flag:
 notifox send -a mathis -c sms -m "DB is down"
 ```
 
+For email, you can set a subject with `-s` or `--subject` (SMS ignores it):
+
+```bash
+notifox send -a oncall -c email -s "Server alert" -m "Disk at 95%"
+```
+
+Add `-v` for verbose output (message ID, cost, parts).
+
 If you set the env vars, you can skip the flags:
 
 ```bash
