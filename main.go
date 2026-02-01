@@ -41,6 +41,7 @@ func main() {
 	sendCmd.Flags().StringP("audience", "a", "", "audience to send the alert to")
 	sendCmd.Flags().StringP("channel", "c", "", "channel to send through (sms|email)")
 	sendCmd.Flags().StringP("message", "m", "", "message to send")
+	sendCmd.Flags().StringP("subject", "s", "", "email subject (email only; ignored for SMS)")
 	sendCmd.Flags().BoolP("verbose", "v", false, "show detailed output (message ID, cost, parts)")
 
 	rootCmd.AddCommand(sendCmd)
@@ -60,6 +61,7 @@ func runSend(cmd *cobra.Command, args []string) error {
 	audience, _ := cmd.Flags().GetString("audience")
 	channel, _ := cmd.Flags().GetString("channel")
 	message, _ := cmd.Flags().GetString("message")
+	subject, _ := cmd.Flags().GetString("subject")
 	verbose, _ := cmd.Flags().GetBool("verbose")
 
 	// Get values from flags or environment variables (flags override env vars, like AWS CLI)
@@ -101,7 +103,7 @@ func runSend(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error initializing app: %w", err)
 	}
 
-	err = notifoxApp.SendAlert(finalAudience, finalChannel, msg, verbose)
+	err = notifoxApp.SendAlert(finalAudience, finalChannel, msg, subject, verbose)
 	if err != nil {
 		return fmt.Errorf("error sending alert: %w", err)
 	}

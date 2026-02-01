@@ -43,8 +43,10 @@ func New(version string) (*App, error) {
 	}, nil
 }
 
-// SendAlert sends an alert to the specified audience via the specified channel
-func (a *App) SendAlert(audience, channel, message string, verbose bool) error {
+// SendAlert sends an alert to the specified audience via the specified channel.
+// For email, if subject is non-empty it is prepended as the first line (API uses first line as subject).
+// For SMS, subject is ignored.
+func (a *App) SendAlert(audience, channel, message, subject string, verbose bool) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -59,10 +61,16 @@ func (a *App) SendAlert(audience, channel, message string, verbose bool) error {
 		return fmt.Errorf("invalid channel: %s (must be 'sms' or 'email')", channel)
 	}
 
+	// For email only: prepend subject as first line so API can use it as subject
+	alertBody := message
+	if ch == notifox.Email && subject != "" {
+		alertBody = subject + "\n\n" + message
+	}
+
 	// Send alert using SDK
 	resp, err := a.client.SendAlertWithOptions(ctx, notifox.AlertRequest{
 		Audience: audience,
-		Alert:    message,
+		Alert:    alertBody,
 		Channel:  ch,
 	})
 
