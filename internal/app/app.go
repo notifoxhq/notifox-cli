@@ -9,6 +9,11 @@ import (
 	"github.com/notifoxhq/notifox-go"
 )
 
+const (
+	maxRetries   = 3
+	initialDelay = 1 * time.Second
+)
+
 // App represents the application layer
 type App struct {
 	client *notifox.Client
@@ -59,15 +64,31 @@ func (a *App) SendAlert(audience, channel, message string, verbose bool) error {
 		return fmt.Errorf("invalid channel: %s (must be 'sms' or 'email')", channel)
 	}
 
-	// Send alert using SDK
-	resp, err := a.client.SendAlertWithOptions(ctx, notifox.AlertRequest{
+	// Send alert with retries for transient errors only
+	req := notifox.AlertRequest{
 		Audience: audience,
 		Alert:    message,
 		Channel:  ch,
-	})
+	}
 
-	if err != nil {
-		return handleError(err)
+	var resp *notifox.AlertResponse
+	var lastErr error
+	delay := initialDelay
+
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		resp, lastErr = a.client.SendAlertWithOptions(ctx, req)
+		if lastErr == nil {
+			break
+		}
+		if !isRetryable(lastErr) || attempt == maxRetries {
+			return handleError(lastErr)
+		}
+		time.Sleep(delay)
+		delay *= 2
+	}
+
+	if lastErr != nil {
+		return handleError(lastErr)
 	}
 
 	// Print success details only if verbose
@@ -78,6 +99,20 @@ func (a *App) SendAlert(audience, channel, message string, verbose bool) error {
 	}
 
 	return nil
+}
+
+// isRetryable returns true only for errors that might succeed on retry.
+// We do not retry: bad request (4xx), auth, insufficient balance, rate limit.
+// We do retry: connection errors, internal server error (5xx).
+func isRetryable(err error) bool {
+	switch e := err.(type) {
+	case *notifox.NotifoxConnectionError:
+		return true
+	case *notifox.NotifoxAPIError:
+		return e.StatusCode >= 500
+	default:
+		return false
+	}
 }
 
 // handleError converts SDK errors to user-friendly messages
