@@ -21,6 +21,9 @@ archives:
   - id: default
     builds:
       - notifox
+    # Only package the binary (no README, LICENSE, etc.)
+    files:
+      - none*
     format_overrides:
       - goos: windows
         format: zip
