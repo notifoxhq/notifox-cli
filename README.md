@@ -3,32 +3,25 @@
 Pipe output from any command into an alert. That's it.
 
 ```bash
-echo "hello" | notifox send -a mathis -c email
+echo "hello" | notifox send -a john -c email
 ```
 
 ## Installation
 
-Download from the [releases page](https://github.com/notifoxhq/notifox-cli/releases):
+### macOS / Linux
 
-### macOS (Apple Silicon)
 ```bash
-curl -L https://github.com/notifoxhq/notifox-cli/releases/latest/download/notifox-cli_darwin_arm64.tar.gz | tar -xz
-sudo mv notifox /usr/local/bin/
-```
-### macOS (Intel)
-```bash
-curl -L https://github.com/notifoxhq/notifox-cli/releases/latest/download/notifox-cli_darwin_amd64.tar.gz | tar -xz
-sudo mv notifox /usr/local/bin/
-```
-### Linux (amd64)
-```bash
-curl -L https://github.com/notifoxhq/notifox-cli/releases/latest/download/notifox-cli_linux_amd64.tar.gz | tar -xz
-sudo mv notifox /usr/local/bin/
+curl -fsSL https://notifox.com/install.sh | sh
 ```
 
-Windows users: download the zip from the [releases](https://github.com/notifoxhq/notifox-cli/releases) page and extract it manually.
+This installs to `~/.local/bin` (or `/usr/local/bin` if you have write access). Add to your PATH if needed.
 
-Or build from source:
+**Or download manually** from the [releases page](https://github.com/notifoxhq/notifox-cli/releases).
+
+### Windows
+Download `notifox-cli_windows_amd64.zip` from the [releases](https://github.com/notifoxhq/notifox-cli/releases) page and extract `notifox.exe` to a folder on your PATH.
+
+### Build from source
 
 ```bash
 git clone https://github.com/notifoxhq/notifox-cli.git
